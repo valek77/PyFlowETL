@@ -1,4 +1,4 @@
-from pyflowetl.log import get_logger
+from pyflowetl.log import get_logger, log_memory_usage
 
 
 
@@ -17,6 +17,7 @@ class ConcatColumnsTransformer:
             if self.drop_originals:
                 data.drop(columns=self.columns, inplace=True)
             logger.info(f"[ConcatColumnsTransformer] Colonna '{self.output_column}' creata")
+            log_memory_usage((f"Dopo Creazione colonna '{self.output_column}' da: {self.columns}"))
             return data
         except Exception as e:
             logger.exception(f"[ConcatColumnsTransformer] Errore durante la trasformazione: {e}")

@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from pyflowetl.log import get_logger
+from pyflowetl.log import get_logger, log_memory_usage
 
 
 
@@ -23,6 +23,7 @@ class CsvExtractor:
         try:
             df = pd.read_csv(self.filepath, encoding=self.encoding, delimiter=self.delimiter, low_memory=self.low_memory)
             logger.info(f"[CsvExtractor] Letti {len(df)} record")
+            log_memory_usage(f"Dopo lettura file: {self.filepath}")
             return df
         except Exception as e:
             logger.exception(f"[CsvExtractor] Errore durante la lettura del file: {e}")

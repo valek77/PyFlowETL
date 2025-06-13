@@ -2,6 +2,10 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
+import psutil
+import os
+
+
 
 _logger = None
 _log_path = None
@@ -45,3 +49,10 @@ def get_logger():
     _logger = logger
     _logger_initialized_with = log_path
     return logger
+
+
+def log_memory_usage(label=""):
+    logger = get_logger()
+    process = psutil.Process(os.getpid())
+    rss_mb = process.memory_info().rss / (1024 * 1024)
+    logger.info(f"[Memoria] {label} - RAM usata: {rss_mb:.2f} MB")

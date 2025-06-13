@@ -1,4 +1,4 @@
-from pyflowetl.log import get_logger
+from pyflowetl.log import get_logger, log_memory_usage
 
 
 
@@ -39,6 +39,7 @@ class SetOutputColumnsTransformer:
         data = data[[col for col in columns_to_keep if col in data.columns]]
 
         logger.info(f"[SetOutputColumnsTransformer] Colonne finali: {list(data.columns)}")
+        log_memory_usage("Dopo SetOutputColumnsTransformer")
         return data
 
 
