@@ -8,9 +8,14 @@ from pyflowetl.transformers.concat_columns import ConcatColumnsTransformer
 from pyflowetl.transformers.validate_columns import ValidateColumnsTransformer
 from pyflowetl.transformers.set_output_columns import SetOutputColumnsTransformer
 from pyflowetl.transformers.apply_preprocessing_rules import ApplyPreprocessingRulesTransformer
+from pyflowetl.transformers.convert_date_format import ConvertDateFormatTransformer
+from pyflowetl.transformers.add_provincia import AddProvinciaTransformer
+from pyflowetl.transformers.add_regione import AddRegioneTransformer
+from pyflowetl.transformers.add_constant_column import AddConstantColumnTransformer
 
 from pyflowetl.validators.not_empty import NotEmptyValidator
 from pyflowetl.validators.telefono_italiano import TelefonoItalianoValidator
+from pyflowetl.validators.codice_fiscale import CodiceFiscaleValidator
 
 from pyflowetl.preprocessors.normalize_phone import NormalizePhoneNumberPreProcessor
 from pyflowetl.preprocessors.to_upper import ToUpperPreProcessor
@@ -25,14 +30,15 @@ logger.info("Avvio esecuzione ETL personalizzata")
 validation_rules = {
     "NOME": [NotEmptyValidator()],
     "COGNOME": [NotEmptyValidator()],
-    "CELL": [TelefonoItalianoValidator()]
+    "CELL": [TelefonoItalianoValidator()],
+    "COD FISCALE":[CodiceFiscaleValidator()]
 }
 
 # Regole di preprocessing
 preprocessing_rules = {
     "CELL"    : [NormalizePhoneNumberPreProcessor()],
     "NOME"    : [ToUpperPreProcessor()],
-    "COGNOME" : [ToLowerPreProcessor()]
+    "COGNOME" : [ToUpperPreProcessor()]
 }
 
 # Esecuzione pipeline
@@ -61,12 +67,34 @@ pipeline.transform(ConcatColumnsTransformer(
     drop_originals=False
 ))
 
+pipeline.transform(AddProvinciaTransformer("LOCALITA'"))
+pipeline.transform(AddRegioneTransformer("LOCALITA'"))
+
+
+pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "ML GIUGNO 2025"))
+pipeline.transform(AddConstantColumnTransformer("DATA_CESSAZIONE", None))
+
+pipeline.transform(ConvertDateFormatTransformer(
+    columns="data attivazione",
+    input_format="%d-%b-%y",  # formato tipo Oracle
+    output_format="%Y-%m-%d"
+))
+
 pipeline.transform(SetOutputColumnsTransformer(columns={
     "COGNOME_NOME": "COGNOME_NOME",
     "POD": "POD",
-    "INDIRIZZO_COMPLETO": "INDIRIZZO",
-    "CAP": "CAP"
+    "INDIRIZZO_COMPLETO": "INDIRIZZO_COMPLETO",
+    "CAP": "CAP",
+    "LOCALITA'":"LOCALITA",
+    "PROVINCIA":"PROVINCIA",
+    "REGIONE":"REGIONE",
+    "NOME_FILE":"NOME_FILE",
+    "data attivazione": "DATA_ATTIVAZIONE",
+    "DATA_CESSAZIONE":"DATA_CESSAZIONE"
+
 }, rename=True))
+
+
 
 pipeline.load(CsvLoader("c:\\tmp\\ml_06_out.csv", delimiter=";"))
 
