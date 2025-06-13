@@ -24,3 +24,11 @@ class EtlPipeline:
         loader.load(self.data)
         logger.info("Caricamento completato")
         return self
+
+    def preprocess(self, preprocessor):
+        from pyflowetl.log import get_logger
+        logger = get_logger()
+        logger.info(f"Inizio fase PREPROCESS con {preprocessor.__class__.__name__}")
+        self.data = preprocessor.apply(self.data)
+        logger.info(f"Preprocessing completato")
+        return self
