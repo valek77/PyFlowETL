@@ -1,0 +1,3 @@
+pandas
+openpyxl     # necessario per leggere/scrivere Excel con pandas
+psutil       # per il monitoraggio della memoria
