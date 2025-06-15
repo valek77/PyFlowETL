@@ -84,14 +84,17 @@ pipeline.transform(ConvertDateFormatTransformer(
 ))
 
 pipeline.transform(SetOutputColumnsTransformer(columns={
+    "COD FISCALE":"CF",
     "COGNOME_NOME": "COGNOME_NOME",
+    "CELL":"CELL",
     "POD": "POD",
     "INDIRIZZO_COMPLETO": "INDIRIZZO_COMPLETO",
     "CAP": "CAP",
-    "LOCALITA'":"LOCALITA",
+    "LOCALITA'":"COMUNE",
     "PROVINCIA":"PROVINCIA",
     "REGIONE":"REGIONE",
     "NOME_FILE":"NOME_FILE",
+    "trader":"TRADER",
     "data attivazione": "DATA_ATTIVAZIONE",
     "DATA_CESSAZIONE":"DATA_CESSAZIONE"
 

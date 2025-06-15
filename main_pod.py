@@ -14,6 +14,7 @@ from pyflowetl.transformers.add_regione import AddRegioneTransformer
 from pyflowetl.transformers.add_constant_column import AddConstantColumnTransformer
 from pyflowetl.transformers.log_head import LogHeadTransformer
 from pyflowetl.transformers.drop_columns import DropColumnsTransformer
+from pyflowetl.transformers.extract_cap_from_address import ExtractCapFromAddressTransformer
 
 from pyflowetl.validators.not_empty import NotEmptyValidator
 from pyflowetl.validators.telefono_italiano import TelefonoItalianoValidator
@@ -71,7 +72,7 @@ pipeline.transform(ValidateColumnsTransformer(
     reject_output_path="/Users/marco/tmp/scarti_pod_luglio_2025_out.csv"
 ))
 
-
+pipeline.transform(ExtractCapFromAddressTransformer("INDIRIZZO", "CAP"))
 
 
 
@@ -82,6 +83,8 @@ cloned  = pipeline.clone()
 
 pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "POD ATTIVI LUGLIO 2025"))
 cloned.transform(AddConstantColumnTransformer("NOME_FILE", "POD CESSATI GIUGNO 2025"))
+
+
 
 #VECCHIO_TRADER
 #NUOVO_TRADER
@@ -96,14 +99,16 @@ cloned.transform(AddConstantColumnTransformer("NOME_FILE", "POD CESSATI GIUGNO 2
 #REGIONE
 #INDIRIZZO
 pipeline.transform(SetOutputColumnsTransformer(columns={
+    "CF":"CF",
     "NOME_COGNOME": "NOME_COGNOME",
+    "TELEFONO": "TELEFONO",
     "PDR": "PDR",
     "INDIRIZZO": "INDIRIZZO",
-    "VECCHIO_TRADER":"TRADER",
     "CAP": "CAP",
-    "LOCALITA'":"LOCALITA",
-    "PROVINCIA":"PROVINCIA",
-    "REGIONE":"REGIONE",
+    "LOCALITA'":"COMUNE",
+    "PROV": "PROVINCIA",
+    "REGIONE": "REGIONE",
+    "VECCHIO_TRADER":"TRADER",
     "NOME_FILE":"NOME_FILE",
     "DATA_ATTIVAZIONE": "DATA_ATTIVAZIONE",
     "DATA_CESSAZIONE":"DATA_CESSAZIONE"
@@ -122,17 +127,23 @@ cloned.transform(DropColumnsTransformer(["DATA_ATTIVAZIONE"]))
 cloned.transform(AddConstantColumnTransformer("DATA_ATTIVAZIONE",None))
 
 cloned.transform(SetOutputColumnsTransformer(columns={
+    "CF":"CF",
     "NOME_COGNOME": "NOME_COGNOME",
+    "TELEFONO":"TELEFONO",
     "PDR": "PDR",
     "INDIRIZZO": "INDIRIZZO",
-    "NUOVO_TRADER":"TRADER",
+
     "CAP": "CAP",
-    "LOCALITA'":"LOCALITA",
-    "PROVINCIA":"PROVINCIA",
+    "LOCALITA'":"COMUNE",
+    "PROV":"PROVINCIA",
     "REGIONE":"REGIONE",
+    "NUOVO_TRADER":"TRADER",
     "NOME_FILE":"NOME_FILE",
     "DATA_ATTIVAZIONE": "DATA_ATTIVAZIONE",
-    "DATA_CESSAZIONE":"DATA_CESSAZIONE"
+    "DATA_CESSAZIONE":"DATA_CESSAZIONE",
+
+
+
 
 }, rename=True))
 
