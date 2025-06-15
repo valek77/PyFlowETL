@@ -1,22 +1,43 @@
-import re
-from pyflowetl.validators.base import BaseValidator
-import pandas as pd
+from pyflowetl.log import get_logger, log_memory_usage
 
-class CodiceFiscaleValidator(BaseValidator):
-    CF_REGEX = r"^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$"
+class CodiceFiscaleValidator:
+    def __init__(self):
+        self.logger = get_logger()
 
-    def validate(self, value) -> bool:
-        if pd.isna(value):
-            return False
-        value = str(value).strip().upper()
-        return re.match(self.CF_REGEX, value) is not None
+    def validate(self, value: str) -> (bool, str):
+        if not value or not isinstance(value, str) or len(value) != 16:
+            return False, "Codice fiscale non valido (lunghezza ≠ 16)"
 
-    def error_message(self):
-        return "Codice fiscale non valido"
+        value = value.upper()
 
-# ESEMPIO D'USO
-if __name__ == "__main__":
-    v = CodiceFiscaleValidator()
-    print(v.validate("RSSMRA85T10A562S"))  # True
-    print(v.validate("abc"))               # False
-    print(v.validate(None))                # False
+        if not value[:15].isalnum() or not value[15].isalpha():
+            return False, "Formato codice fiscale non valido"
+
+        expected = self._calcola_codice_controllo(value[:15])
+        if expected != value[15]:
+            return False, f"Carattere di controllo errato: atteso {expected}, trovato {value[15]}"
+
+        return True, ""
+
+    def _calcola_codice_controllo(self, codice: str) -> str:
+        dispari = {
+            **{ch: val for ch, val in zip("0123456789", [1, 0, 5, 7, 9, 13, 15, 17, 19, 21])},
+            **{ch: val for ch, val in zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                                          [1, 0, 5, 7, 9, 13, 15, 17, 19, 21,
+                                           2, 4, 18, 20, 11, 3, 6, 8, 12, 14,
+                                           16, 10, 22, 25, 24, 23])}
+        }
+
+        pari = {
+            **{ch: int(ch) for ch in "0123456789"},
+            **{ch: ord(ch) - ord('A') for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
+        }
+
+        somma = 0
+        for i, ch in enumerate(codice):
+            if i % 2 == 0:
+                somma += dispari[ch]
+            else:
+                somma += pari[ch]
+
+        return chr((somma % 26) + ord('A'))
