@@ -96,8 +96,8 @@ pipeline.transform(SetOutputColumnsTransformer(columns={
     "COMUNE":"COMUNE",
     "PROVINCIA":"PROVINCIA",
     "REGIONE":"REGIONE",
-    "NOME_FILE":"NOME_FILE",
     "TRADER":"TRADER",
+    "NOME_FILE":"NOME_FILE",
     "DATA_ATTIVAZIONE": "DATA_ATTIVAZIONE",
     "DATA_CESSAZIONE":"DATA_CESSAZIONE"
 

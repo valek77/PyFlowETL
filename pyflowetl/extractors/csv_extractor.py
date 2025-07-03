@@ -21,7 +21,11 @@ class CsvExtractor:
             raise FileNotFoundError(f"File non trovato: {self.filepath}")
 
         try:
-            df = pd.read_csv(self.filepath, encoding=self.encoding, delimiter=self.delimiter, low_memory=self.low_memory)
+            df = pd.read_csv(self.filepath,
+                             encoding=self.encoding,
+                             delimiter=self.delimiter,
+                             keep_default_na=False,  # ← disattiva il riconoscimento automatico di "NA" come NaN
+                             low_memory=self.low_memory)
             logger.info(f"[CsvExtractor] Letti {len(df)} record")
             log_memory_usage(f"Dopo lettura file: {self.filepath}")
             return df

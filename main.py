@@ -74,7 +74,7 @@ pipeline.transform(AddProvinciaTransformer("LOCALITA'"))
 pipeline.transform(AddRegioneTransformer("LOCALITA'"))
 
 
-pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "ML GIUGNO 2025"))
+pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "ML_ATTIVI_GIUGNO_2025"))
 pipeline.transform(AddConstantColumnTransformer("DATA_CESSAZIONE", None))
 
 pipeline.transform(ConvertDateFormatTransformer(
@@ -93,8 +93,8 @@ pipeline.transform(SetOutputColumnsTransformer(columns={
     "LOCALITA'":"COMUNE",
     "PROVINCIA":"PROVINCIA",
     "REGIONE":"REGIONE",
-    "NOME_FILE":"NOME_FILE",
     "trader":"TRADER",
+    "NOME_FILE":"NOME_FILE",
     "data attivazione": "DATA_ATTIVAZIONE",
     "DATA_CESSAZIONE":"DATA_CESSAZIONE"
 
