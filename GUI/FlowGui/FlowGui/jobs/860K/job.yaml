@@ -1,0 +1,16 @@
+name: Valida e Normalizza Contatti
+description: Normalizza numeri di telefono, valida email e salva i risultati corretti/scartati in CSV
+entrypoint: run.py
+parameters:
+  - name: input_csv
+    type: file
+    label: CSV di input
+    default: C:\Users\marco\Downloads\MAIL\860K_MAIL.csv
+  - name: output_csv
+    type: file
+    label: CSV di output (validi)
+    default: C:\Users\marco\Downloads\MAIL\860K_MAIL_OUT.csv
+  - name: reject_csv
+    type: file
+    label: CSV di scarti (invalidi)
+    default: C:\Users\marco\Downloads\MAIL\SCARTI_860K_MAIL.csv

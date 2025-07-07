@@ -12,13 +12,20 @@ class AddRegioneFromSiglaProvinciaTransformer:
         csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'gi_comuni_cap.csv')
         self.prov_df = pd.read_csv(csv_path, sep=';', encoding='utf-8-sig')
 
+
         # Crea mappa sigla → regione
         self.sigla_to_regione = self.prov_df.drop_duplicates(subset=["sigla_provincia"]).set_index("sigla_provincia")["denominazione_regione"].to_dict()
-        self.logger.info(f"[AddRegioneFromSiglaProvinciaTransformer] Mappa sigle → regioni caricata con {len(self.sigla_to_regione)} voci")
+        self.logger.info(f"[AddRegioneFromSiglaProvinciaTransformer] Mappa sigle vs regioni caricata con {len(self.sigla_to_regione)} voci")
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         self.logger.info(f"[AddRegioneFromSiglaProvinciaTransformer] Aggiunta colonna '{self.output_column}' da '{self.sigla_column}'")
 
+
+
         df[self.output_column] = df[self.sigla_column].map(self.sigla_to_regione)
+
+        #  Pezza manuale per 'NA' = Napoli → Campania
+        df.loc[df[self.sigla_column] == "NA", self.output_column] = "Campania"
+
         log_memory_usage("[AddRegioneFromSiglaProvinciaTransformer] post-transform")
         return df

@@ -37,7 +37,9 @@ class CsvExtractor:
                     encoding=encoding_to_use,
                     delimiter=self.delimiter,
                     keep_default_na=False,
-                    low_memory=self.low_memory,
+                    na_values=[],
+                    dtype=str,
+                low_memory=self.low_memory,
                 )
             except UnicodeDecodeError:
                 logger.warning(f"[CsvExtractor] Errore con encoding '{encoding_to_use}', provo fallback 'cp1252'")

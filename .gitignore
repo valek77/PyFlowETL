@@ -226,3 +226,6 @@ cython_debug/
 
 # Ignore custom settings for run/debug configurations
 .idea/runConfigurations/
+GUI/FlowGui/.vs/
+GUI/FlowGui/FlowGui/bin/
+GUI/FlowGui/FlowGui/obj/
