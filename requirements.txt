@@ -5,3 +5,4 @@ metaphone
 rapidfuzz
 sqlalchemy
 psycopg2
+chardet

@@ -16,9 +16,11 @@ from pyflowetl.transformers.add_regione import AddRegioneTransformer
 from pyflowetl.transformers.add_constant_column import AddConstantColumnTransformer
 from pyflowetl.transformers.log_head import LogHeadTransformer
 from pyflowetl.transformers.distinct import DistinctTransformer
+from pyflowetl.transformers.drop_columns import DropColumnsTransformer
 
 
 from pyflowetl.validators.not_empty import NotEmptyValidator
+from pyflowetl.validators.regex import RegexValidator
 from pyflowetl.validators.telefono_italiano import TelefonoItalianoValidator
 from pyflowetl.validators.codice_fiscale import CodiceFiscaleValidator
 from pyflowetl.validators.column_comparison import ColumnComparisonValidator
@@ -35,48 +37,61 @@ logger = get_logger()
 logger.info("Avvio esecuzione ETL personalizzata")
 
 preprocessing_rules = {
-    "CELL1"    : [NormalizePhoneNumberPreProcessor()],
+    "MOBILE"    : [NormalizePhoneNumberPreProcessor()],
 }
 
+
+
+
+
 validation_rules = {
-    "EMAIL": [NotEmptyValidator(), ColumnComparisonValidator("!=", "all@gmail.com")],
-    "CELL1": [TelefonoItalianoValidator()],
+    "E_MAIL": [NotEmptyValidator(), ColumnComparisonValidator("!=", "all@gmail.com"), RegexValidator(pattern=r"^(?!\d+@gmail\.com$).+")],
+    "MOBILE": [TelefonoItalianoValidator()],
 }
 
 # Esecuzione pipeline
 pipeline = EtlPipeline()
 
-pipeline.extract(CsvExtractor(f"/Users/marco/tmp/5_MILIONI_DB_EMAIL.txt", delimiter="\t", low_memory=False))
+pipeline.extract(CsvExtractor(f"/Users/marco/tmp/L4.csv", delimiter=";", low_memory=False))
+
+
+
+pipeline.transform(DropColumnsTransformer(["AreaNilsen","ANNO_NASCITA","LOTTO"]))
 
 pipeline.transform(LogHeadTransformer())
+
+
 
 pipeline.transform(ApplyPreprocessingRulesTransformer(preprocessing_rules))
 
 pipeline.transform(ValidateColumnsTransformer(
     rules=validation_rules,
-    reject_output_path=f"/Users/marco/tmp/SCARTI_5_MILIONI_DB_EMAIL.txt"
+    reject_output_path=f"/Users/marco/tmp/SCARTI_L4.csv"
 ))
 
-pipeline.transform(AddRegioneFromSiglaProvinciaTransformer("PROV"))
+pipeline.transform(ConcatColumnsTransformer(["COGNOME","NOME"],"COGNOME_NOME"," ", True))
+
+pipeline.transform(LogHeadTransformer())
 
 
 
 
-#$telefono, $nominativo, $email, $cf, $citta, $cap, $provincia, $regione
+#pipeline.transform(AddRegioneFromSiglaProvinciaTransformer("PROV"))
+
 
 
 pipeline.transform(SetOutputColumnsTransformer(columns={
-    "CELL1":"CELL",
-    "NAME": "NAME",
-    "EMAIL":"EMAIL",
-    "CODFISC":"CF",
-    "CITY": "COMUNE",
+    "MOBILE":"CELL",
+    "COGNOME_NOME": "COGNOME_NOME",
+    "E_MAIL":"EMAIL",
+    "CF":"CF",
+    "COMUNE": "COMUNE",
     "CAP": "CAP",
     "PROV":"PROVINCIA",
-    "REGIONE":"REGIONE",
+    "Regione":"REGIONE",
 
 }, rename=True))
 
-pipeline.load(CsvLoader("/Users/marco/tmp/5_MILIONI_DB_EMAIL_OUT.txt", delimiter=";"))
+pipeline.load(CsvLoader("/Users/marco/tmp/L4_OUT.txt", delimiter=";"))
 
 log_memory_usage("Fine ETL")
