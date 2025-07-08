@@ -17,6 +17,7 @@ namespace FlowGui.App
                 string repo = "valek77/PyFlowETL";
                 string versionFile = Path.Combine("etl_framework", "VERSION.txt");
                 string venvPythonExe = Path.Combine("etl_venv", "Scripts", "python.exe");
+                string setupFlag = Path.Combine("etl_venv", "setup_done.txt");
 
                 LogManager.Append("🔍 Controllo aggiornamenti framework...");
                 await DownloadFrameworkIfNeeded(repo, versionFile);
@@ -24,8 +25,19 @@ namespace FlowGui.App
                 LogManager.Append("⚙️ Verifica venv...");
                 CreateVenvIfMissing(venvPythonExe);
 
-                LogManager.Append("📦 Installazione dipendenze...");
-                await InstallFrameworkDependencies(venvPythonExe);
+                string currentVersion = File.Exists(versionFile) ? File.ReadAllText(versionFile).Trim() : "";
+
+                if (File.Exists(setupFlag) && File.ReadAllText(setupFlag).Trim() == currentVersion)
+                {
+                    LogManager.Append($"✅ Ambiente già pronto per la versione {currentVersion}");
+                }
+                else
+                {
+                    LogManager.Append("📦 Installazione dipendenze...");
+                    await InstallFrameworkDependencies(venvPythonExe);
+
+                    File.WriteAllText(setupFlag, currentVersion);
+                }
 
                 LogManager.Append("✅ Setup completato.");
             }
@@ -84,10 +96,9 @@ namespace FlowGui.App
 
             LogManager.Append("🛠️ Creo ambiente virtuale (venv)...");
 
-            string systemPython = "python";
             var psi = new ProcessStartInfo
             {
-                FileName = systemPython,
+                FileName = "python",
                 Arguments = "-m venv etl_venv",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -153,6 +164,5 @@ namespace FlowGui.App
             proc.BeginErrorReadLine();
             await proc.WaitForExitAsync();
         }
-
     }
 }

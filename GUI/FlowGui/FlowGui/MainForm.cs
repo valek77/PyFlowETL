@@ -239,7 +239,7 @@ namespace FlowGui
         }
 
 
-       
+
 
 
         private async void EseguiJob(string jobPath, Dictionary<string, string> parametri)
@@ -275,15 +275,23 @@ namespace FlowGui
                 CreateNoWindow = true
             };
 
+            // Aggiungi PYTHONPATH per far trovare pyflowetl
+            string frameworkPath = Path.GetFullPath("etl_framework");
+            if (psi.EnvironmentVariables.ContainsKey("PYTHONPATH"))
+                psi.EnvironmentVariables["PYTHONPATH"] = frameworkPath + ";" + psi.EnvironmentVariables["PYTHONPATH"];
+            else
+                psi.EnvironmentVariables["PYTHONPATH"] = frameworkPath;
+
             var process = new Process { StartInfo = psi };
             process.OutputDataReceived += (s, e) => LogManager.Append(e.Data);
-            process.ErrorDataReceived += (s, e) => LogManager.Append(e.Data);
+            process.ErrorDataReceived += (s, e) => LogManager.Append(e.Data, isError: true);
 
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             await process.WaitForExitAsync();
         }
+
     }
 }
 
