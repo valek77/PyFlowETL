@@ -34,6 +34,8 @@
             label2 = new Label();
             txtDescription = new TextBox();
             label3 = new Label();
+            btnTunJob = new Button();
+            txtLog = new TextBox();
             SuspendLayout();
             // 
             // cmbJobs
@@ -93,11 +95,33 @@
             label3.TabIndex = 5;
             label3.Text = "Descrizione Job";
             // 
+            // btnTunJob
+            // 
+            btnTunJob.Location = new Point(22, 506);
+            btnTunJob.Name = "btnTunJob";
+            btnTunJob.Size = new Size(75, 23);
+            btnTunJob.TabIndex = 6;
+            btnTunJob.Text = "Esegui Job";
+            btnTunJob.UseVisualStyleBackColor = true;
+            btnTunJob.Click += btnTunJob_Click;
+            // 
+            // txtLog
+            // 
+            txtLog.Location = new Point(22, 564);
+            txtLog.Multiline = true;
+            txtLog.Name = "txtLog";
+            txtLog.ReadOnly = true;
+            txtLog.ScrollBars = ScrollBars.Vertical;
+            txtLog.Size = new Size(1056, 245);
+            txtLog.TabIndex = 7;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1194, 842);
+            ClientSize = new Size(1097, 837);
+            Controls.Add(txtLog);
+            Controls.Add(btnTunJob);
             Controls.Add(label3);
             Controls.Add(txtDescription);
             Controls.Add(label2);
@@ -119,5 +143,7 @@
         private Label label2;
         private TextBox txtDescription;
         private Label label3;
+        private Button btnTunJob;
+        private TextBox txtLog;
     }
 }

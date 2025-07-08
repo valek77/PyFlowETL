@@ -2,6 +2,12 @@ using FlowGui.App;
 using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using System.Net.Http;
+using System.IO.Compression;
+using Newtonsoft.Json.Linq;
+
+using System.Diagnostics;
+using System.Text;
 
 
 namespace FlowGui
@@ -13,13 +19,24 @@ namespace FlowGui
             InitializeComponent();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private async void MainForm_Load(object sender, EventArgs e)
+        {
+            LogManager.SetOutput(txtLog);
+            LoadJobs();
+            await new AutoSetup().SetupAsync();
+        }
+
+
+
+
+
+        private void LoadJobs()
         {
             cmbJobs.Items.Clear();
 
             cmbJobs.Items.Add(new JobDefinition
             {
-                Name = "",         // oppure "-- Seleziona un Job --"
+                Name = "-- Seleziona un Job --",         // oppure "-- Seleziona un Job --"
                 Description = "",
                 Path = ""
             });
@@ -68,6 +85,8 @@ namespace FlowGui
                 cmbJobs.SelectedIndex = 0;
         }
 
+
+       
 
         private void GenerateParameterControls(string jobFolder)
         {
@@ -169,6 +188,101 @@ namespace FlowGui
             var job = cmbJobs.SelectedItem as JobDefinition;
             if (!string.IsNullOrWhiteSpace(job?.Path))
                 GenerateParameterControls(job.Path);
+        }
+
+        private async void btnTunJob_Click(object sender, EventArgs e)
+        {
+            var job = cmbJobs.SelectedItem as JobDefinition;
+            if (job == null || string.IsNullOrWhiteSpace(job.Path))
+            {
+                MessageBox.Show("Seleziona un job valido.");
+                return;
+            }
+
+            var parametri = GetParameterValues(); // già definita
+            EseguiJob(job.Path, parametri);
+        }
+
+        private Dictionary<string, string> GetParameterValues()
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach (Control ctrl in pnlParameters.Controls)
+            {
+                // Il controllo deve avere il Tag settato con il nome del parametro
+                if (ctrl.Tag is not string name || string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                string value = "";
+
+                switch (ctrl)
+                {
+                    case TextBox tb:
+                        value = tb.Text;
+                        break;
+
+                    case CheckBox cb:
+                        value = cb.Checked.ToString().ToLower(); // true / false in formato CLI
+                        break;
+
+                    case FlowLayoutPanel panel: // per file/folder + bottone browse
+                        var txt = panel.Controls.OfType<TextBox>().FirstOrDefault();
+                        if (txt != null)
+                            value = txt.Text;
+                        break;
+                }
+
+                result[name] = value;
+            }
+
+            return result;
+        }
+
+
+       
+
+
+        private async void EseguiJob(string jobPath, Dictionary<string, string> parametri)
+        {
+            txtLog.Clear();
+
+            string pythonExe = Path.Combine("etl_venv", "Scripts", "python.exe");
+            string runScript = Path.Combine(jobPath, "run.py");
+
+            if (!File.Exists(pythonExe))
+            {
+                MessageBox.Show("Python non trovato (venv mancante).");
+                return;
+            }
+
+            if (!File.Exists(runScript))
+            {
+                MessageBox.Show("Script run.py non trovato.");
+                return;
+            }
+
+            // Costruisci gli argomenti
+            string args = string.Join(" ", parametri.Select(kv =>
+                $"--{kv.Key}=\"{kv.Value.Replace("\"", "\\\"")}\""));
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = pythonExe,
+                Arguments = $"\"{runScript}\" {args}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            var process = new Process { StartInfo = psi };
+            process.OutputDataReceived += (s, e) => LogManager.Append(e.Data);
+            process.ErrorDataReceived += (s, e) => LogManager.Append(e.Data);
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            await process.WaitForExitAsync();
         }
     }
 }
