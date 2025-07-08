@@ -21,7 +21,9 @@ class ApplyPreprocessingRulesTransformer:
 
         for column, processors in self.rules.items():
             if column not in data.columns:
-                logger.warning(f"Colonna '{column}' non presente nel DataFrame")
+                msg = f"Colonna '{column}' non presente nel DataFrame"
+                logger.warning(msg)
+                raise  ValueError(msg)
                 continue
             for processor in processors:
                 logger.info(f"  Applico {processor.__class__.__name__} su '{column}'")

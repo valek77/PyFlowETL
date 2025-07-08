@@ -75,7 +75,7 @@ pipeline.transform(ConcatColumnsTransformer(
 pipeline.transform(AddRegioneFromSiglaProvinciaTransformer("PROVINCIA"))
 
 
-pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "USCITI ENEL GIUGNO 2025"))
+pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "USCITI ENEL AGOSTO 2025"))
 pipeline.transform(AddConstantColumnTransformer("DATA_ATTIVAZIONE", None))
 
 pipeline.transform(AddConstantColumnTransformer("TRADER", "ENEL ENERGIA S.P.A."))

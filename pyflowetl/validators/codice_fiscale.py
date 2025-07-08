@@ -1,23 +1,30 @@
-from pyflowetl.log import get_logger, log_memory_usage
+from pyflowetl.log import get_logger
 
 class CodiceFiscaleValidator:
     def __init__(self):
         self.logger = get_logger()
+        self._last_error = ""
 
-    def validate(self, value: str) -> (bool, str):
+    def validate(self, value: str) -> bool:
         if not value or not isinstance(value, str) or len(value) != 16:
-            return False, "Codice fiscale non valido (lunghezza ≠ 16)"
+            self._last_error = "Codice fiscale non valido (lunghezza ≠ 16)"
+            return False
 
         value = value.upper()
 
         if not value[:15].isalnum() or not value[15].isalpha():
-            return False, "Formato codice fiscale non valido"
+            self._last_error = "Formato codice fiscale non valido"
+            return False
 
         expected = self._calcola_codice_controllo(value[:15])
         if expected != value[15]:
-            return False, f"Carattere di controllo errato: atteso {expected}, trovato {value[15]}"
+            self._last_error = f"Carattere di controllo errato: atteso {expected}, trovato {value[15]}"
+            return False
 
-        return True, ""
+        return True
+
+    def error_message(self):
+        return self._last_error or "Codice fiscale non valido"
 
     def _calcola_codice_controllo(self, codice: str) -> str:
         dispari = {
@@ -35,9 +42,6 @@ class CodiceFiscaleValidator:
 
         somma = 0
         for i, ch in enumerate(codice):
-            if i % 2 == 0:
-                somma += dispari[ch]
-            else:
-                somma += pari[ch]
+            somma += dispari[ch] if i % 2 == 0 else pari[ch]
 
         return chr((somma % 26) + ord('A'))

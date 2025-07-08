@@ -13,6 +13,7 @@ from pyflowetl.transformers.add_provincia import AddProvinciaTransformer
 from pyflowetl.transformers.add_regione import AddRegioneTransformer
 from pyflowetl.transformers.add_constant_column import AddConstantColumnTransformer
 from pyflowetl.transformers.log_head import LogHeadTransformer
+from pyflowetl.validators.column_comparison import ColumnComparisonValidator
 
 from pyflowetl.validators.not_empty import NotEmptyValidator
 from pyflowetl.validators.telefono_italiano import TelefonoItalianoValidator
@@ -32,7 +33,8 @@ validation_rules = {
     "NOME": [NotEmptyValidator()],
     "COGNOME": [NotEmptyValidator()],
     "CELL": [TelefonoItalianoValidator()],
-    "COD FISCALE":[CodiceFiscaleValidator()]
+    "COD FISCALE":[CodiceFiscaleValidator()],
+    "trader":[ColumnComparisonValidator("!=", "#N/D")]
 }
 
 # Regole di preprocessing
@@ -45,7 +47,7 @@ preprocessing_rules = {
 # Esecuzione pipeline
 pipeline = EtlPipeline()
 
-pipeline.extract(CsvExtractor("/Users/marco/tmp/ml_06.csv", delimiter=";", low_memory=False))
+pipeline.extract(CsvExtractor("c:\\tmp\\ml_07_02.csv", delimiter=";", low_memory=False))
 
 pipeline.transform(LogHeadTransformer())
 
@@ -53,7 +55,7 @@ pipeline.transform(ApplyPreprocessingRulesTransformer(preprocessing_rules))
 
 pipeline.transform(ValidateColumnsTransformer(
     rules=validation_rules,
-    reject_output_path="/Users/marco/tmp/scarti_ml_06_out.csv"
+    reject_output_path="c:\\tmp\\scarti_ml_07_02_out.csv"
 ))
 
 pipeline.transform(ConcatColumnsTransformer(
@@ -74,7 +76,7 @@ pipeline.transform(AddProvinciaTransformer("LOCALITA'"))
 pipeline.transform(AddRegioneTransformer("LOCALITA'"))
 
 
-pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "ML_ATTIVI_GIUGNO_2025"))
+pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "ML_ATTIVI_LUGLIO_2025_2"))
 pipeline.transform(AddConstantColumnTransformer("DATA_CESSAZIONE", None))
 
 pipeline.transform(ConvertDateFormatTransformer(
@@ -109,14 +111,14 @@ def instradamento_personalizzato(row):
     else:
         return "altre"
 
-sottopipeline = pipeline.split(("napoli", "roma", "altre"), instradamento_personalizzato)
+#sottopipeline = pipeline.split(("napoli", "roma", "altre"), instradamento_personalizzato)
 
-sottopipeline["napoli"].transform(LogHeadTransformer())
+#sottopipeline["napoli"].transform(LogHeadTransformer())
 
-sottopipeline["roma"].transform(LogHeadTransformer())
+#sottopipeline["roma"].transform(LogHeadTransformer())
 
-sottopipeline["altre"].transform(LogHeadTransformer())
+#sottopipeline["altre"].transform(LogHeadTransformer())
 
-pipeline.load(CsvLoader("/Users/marco/tmp/ml_06_out.csv", delimiter=";"))
+pipeline.load(CsvLoader("c:\\tmp\\ml_07_02_out.csv", delimiter=";"))
 
 log_memory_usage("Fine ETL")

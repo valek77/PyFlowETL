@@ -46,12 +46,12 @@ logger.info("Avvio esecuzione ETL POD")
 # Regole di validazione
 validation_rules = {
     "NOME_COGNOME": [NotEmptyValidator()],
-    "COD FISCALE":[CodiceFiscaleValidator()]
+#    "COD FISCALE":[CodiceFiscaleValidator()]
 }
 
 # Regole di preprocessing
 preprocessing_rules = {
-    "CELL"    : [NormalizePhoneNumberPreProcessor()],
+    "TELEFONO"    : [NormalizePhoneNumberPreProcessor()],
     "NOME_COGNOME"    : [ToUpperPreProcessor()],
     "COMUNE" : [ToUpperPreProcessor()],
     "INDIRIZZO" : [ToUpperPreProcessor()]
@@ -61,7 +61,7 @@ preprocessing_rules = {
 # Esecuzione pipeline
 pipeline = EtlPipeline()
 
-pipeline.extract(CsvExtractor("/Users/marco/tmp/pdr_luglio_2025.csv", delimiter=";", low_memory=False))
+pipeline.extract(CsvExtractor("c:\\tmp\\pdr_agosto_2025.csv", delimiter=";", low_memory=False))
 
 pipeline.transform(LogHeadTransformer())
 
@@ -69,7 +69,7 @@ pipeline.transform(ApplyPreprocessingRulesTransformer(preprocessing_rules))
 
 pipeline.transform(ValidateColumnsTransformer(
     rules=validation_rules,
-    reject_output_path="/Users/marco/tmp/scarti_pdr_luglio_2025_out.csv"
+    reject_output_path="c:\\tmp\\scarti_pdr_agosto_2025_out.csv"
 ))
 
 pipeline.transform(ExtractCapFromAddressTransformer("INDIRIZZO", "CAP"))
@@ -96,8 +96,8 @@ pipeline.transform(LogHeadTransformer(100))
 
 cloned  = pipeline.clone()
 
-pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "PDR_ENTRANTI_LUGLIO_2025"))
-cloned.transform(AddConstantColumnTransformer("NOME_FILE", "PDR_USCENTI_GIUGNO_2025"))
+pipeline.transform(AddConstantColumnTransformer("NOME_FILE", "PDR_ENTRANTI_AGOSTO_2025"))
+cloned.transform(AddConstantColumnTransformer("NOME_FILE", "PDR_USCENTI_LUGLIO_2025"))
 
 
 
@@ -137,7 +137,7 @@ pipeline.transform(DropColumnsTransformer(["DATA_CESSAZIONE"]))
 pipeline.transform(AddConstantColumnTransformer("DATA_CESSAZIONE",None))
 
 
-pipeline.load(CsvLoader("/Users/marco/tmp/pdr_attivi_luglio_2025_out.csv", delimiter=";"))
+pipeline.load(CsvLoader("c:\\tmp\\pdr_attivi_agosto_2025_out.csv", delimiter=";"))
 
 cloned.transform(DropColumnsTransformer(["DATA_ATTIVAZIONE"]))
 cloned.transform(AddConstantColumnTransformer("DATA_ATTIVAZIONE",None))
@@ -163,6 +163,6 @@ cloned.transform(SetOutputColumnsTransformer(columns={
 }, rename=True))
 
 
-cloned.load(CsvLoader("/Users/marco/tmp/pdr_cessati_giugno_2025_out.csv", delimiter=";"))
+cloned.load(CsvLoader("c:\\tmp\\pdr_cessati_luglio_2025_out.csv", delimiter=";"))
 
 log_memory_usage("Fine ETL")
