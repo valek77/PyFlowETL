@@ -1,7 +1,7 @@
 from datetime import datetime
 from pyflowetl.validators.base import BaseValidator
 
-class IsValidDateFormatValidator(BaseValidator):
+class DateFormatValidator(BaseValidator):
     def __init__(self, expected_format: str):
         """
         Valida che una stringa rappresenti una data in uno specifico formato.

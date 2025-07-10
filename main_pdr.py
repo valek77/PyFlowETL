@@ -53,7 +53,7 @@ validation_rules = {
 preprocessing_rules = {
     "TELEFONO"    : [NormalizePhoneNumberPreProcessor()],
     "NOME_COGNOME"    : [ToUpperPreProcessor()],
-    "COMUNE" : [ToUpperPreProcessor()],
+    "LOCALITA'" : [ToUpperPreProcessor()],
     "INDIRIZZO" : [ToUpperPreProcessor()]
 
 }

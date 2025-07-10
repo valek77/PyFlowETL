@@ -4,7 +4,7 @@ from pyflowetl.log import get_logger, log_memory_usage
 logger = get_logger()
 
 class ConvertDateFormatTransformer:
-    def __init__(self, columns, input_format, output_format, errors="coerce"):
+    def __init__(self, columns, input_format, output_format, errors="raise"):
         """
         Converte una o più colonne di date da un formato all'altro.
 
