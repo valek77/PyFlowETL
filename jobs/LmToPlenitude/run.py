@@ -5,6 +5,9 @@ from pyflowetl.pipeline import EtlPipeline
 from pyflowetl.extractors.csv_extractor import CsvExtractor
 from pyflowetl.loaders.csv_loader import CsvLoader
 from pyflowetl.preprocessors.nan_to_empty_string import NanToEmptyStringPreprocessor
+from pyflowetl.preprocessors.text_replace import TextReplacePreProcessor
+from pyflowetl.transformers.add_random_ip import AddRandomIpTransformer
+from pyflowetl.transformers.add_ranom_date import AddRandomDatetimeTransformer
 
 from pyflowetl.transformers.concat_columns import ConcatColumnsTransformer
 from pyflowetl.transformers.validate_columns import ValidateColumnsTransformer
@@ -29,15 +32,12 @@ from pyflowetl.preprocessors.to_lower import ToLowerPreProcessor
 
 
 
-path= "c:\\tmp\\AttiviPod\\"
-fileInput = "attivi_07_02.xlsx"
+path= "c:\\tmp\\"
+fileInput = "lista_190.csv"
 fileOut   = "attivi_07_02_out.csv"
-fileScarti ="scarti_attivi_07_02.csv"
-nomeFile= "ML_ATTIVI_LUGLIO_2025"
-input_data_format="%Y-%m-%d %H:%M:%S" #01/05/2025
+dataInzio="2025-05-01 00:00:00"
 
-input_data_format="%d-%b-%y" #01-JAN-25
-
+dataFine="2025-05-30 23:59:59"
 
 
 
@@ -48,22 +48,11 @@ logger = get_logger()
 logger.info("Avvio esecuzione ETL personalizzata")
 
 # Regole di validazione
-validation_rules = {
-    "NOME": [NotEmptyValidator()],
-    "COGNOME": [NotEmptyValidator()],
-    "CELL": [TelefonoItalianoValidator()],
-    "COD FISCALE":[CodiceFiscaleValidator()],
-    "trader":[ColumnComparisonValidator("!=", "0"), ColumnComparisonValidator("!=", "")],
-    "data attivazione" :[DateFormatValidator(input_data_format)]
-}
 
 # Regole di preprocessing
 preprocessing_rules = {
-    "CELL"    : [NormalizePhoneNumberPreProcessor()],
-    "NOME"    : [ToUpperPreProcessor()],
-    "COGNOME" : [ToUpperPreProcessor()],
-    "trader"  : [NanToEmptyStringPreprocessor()]
-
+    "Pod Pdr"    : [TextReplacePreProcessor("=", ""), TextReplacePreProcessor("\"", "")],
+    "Telefono"    : [TextReplacePreProcessor("=", ""), TextReplacePreProcessor("\"", "")],
 }
 
 # Esecuzione pipeline
@@ -71,17 +60,26 @@ pipeline = EtlPipeline()
 
 
 
-pipeline.extract(XlsxExtractor(path+fileInput))
+pipeline.extract(CsvExtractor(path+fileInput,delimiter=";",low_memory=False))
 
-pipeline.transform(LogHeadTransformer(10))
+
 
 
 pipeline.transform(ApplyPreprocessingRulesTransformer(preprocessing_rules))
 
-pipeline.transform(ValidateColumnsTransformer(
-    rules=validation_rules,
-    reject_output_path=path+fileScarti
-))
+
+
+
+pipeline.transform(AddRandomIpTransformer("Regione"))
+
+pipeline.transform(AddConstantColumnTransformer("CONSENSO_0","S"))
+pipeline.transform(AddConstantColumnTransformer("CONSENSO_1","S"))
+pipeline.transform(AddConstantColumnTransformer("CONSENSO_2","S"))
+pipeline.transform(AddRandomDatetimeTransformer("DATA_CONSENSO",dataInzio,dataFine))
+
+
+pipeline.transform(LogHeadTransformer(10))
+exit(10)
 
 #pipeline.transform(ConcatColumnsTransformer(
 #    columns=["COGNOME", "NOME"],
@@ -90,27 +88,6 @@ pipeline.transform(ValidateColumnsTransformer(
 #    drop_originals=True
 #))
 
-pipeline.transform(LogHeadTransformer(100))
-
-pipeline.transform(ConcatColumnsTransformer(
-    columns=["TOPONIMO", "INDIRIZZO", "CIVICO", "LOCALITA'", "CAP"],
-    output_column="INDIRIZZO_COMPLETO",
-    separator=" ",
-    drop_originals=False
-))
-
-pipeline.transform(AddProvinciaTransformer("LOCALITA'"))
-pipeline.transform(AddRegioneTransformer("LOCALITA'"))
-
-
-pipeline.transform(AddConstantColumnTransformer("NOME_FILE", nomeFile))
-pipeline.transform(AddConstantColumnTransformer("DATA_CESSAZIONE", None))
-
-pipeline.transform(ConvertDateFormatTransformer(
-    columns="data attivazione",
-    input_format=input_data_format,
-    output_format="%Y-%m-%d"
-))
 
 pipeline.transform(SetOutputColumnsTransformer(columns={
     "COD FISCALE":"CF",
@@ -130,22 +107,6 @@ pipeline.transform(SetOutputColumnsTransformer(columns={
 
 }, rename=True))
 
-
-def instradamento_personalizzato(row):
-    if row["PROVINCIA"] == "Napoli":
-        return "napoli"
-    elif row["PROVINCIA"] == "Roma":
-        return "roma"
-    else:
-        return "altre"
-
-#sottopipeline = pipeline.split(("napoli", "roma", "altre"), instradamento_personalizzato)
-
-#sottopipeline["napoli"].transform(LogHeadTransformer())
-
-#sottopipeline["roma"].transform(LogHeadTransformer())
-
-#sottopipeline["altre"].transform(LogHeadTransformer())
 
 pipeline.load(CsvLoader(path+fileOut, delimiter=";"))
 
